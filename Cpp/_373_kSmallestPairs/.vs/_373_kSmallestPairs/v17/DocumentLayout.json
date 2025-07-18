@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_373_kSmallestPairs\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{62360F7D-E849-40BA-A177-E9164DD7445B}|_373_kSmallestPairs\\_373_kSmallestPairs.vcxproj|D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_373_kSmallestPairs\\_373_kSmallestPairs\\_373_kSmallestPairs.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{62360F7D-E849-40BA-A177-E9164DD7445B}|_373_kSmallestPairs\\_373_kSmallestPairs.vcxproj|solutionrelative:_373_kSmallestPairs\\_373_kSmallestPairs.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_373_kSmallestPairs.cpp",
+              "DocumentMoniker": "D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_373_kSmallestPairs\\_373_kSmallestPairs\\_373_kSmallestPairs.cpp",
+              "RelativeDocumentMoniker": "_373_kSmallestPairs\\_373_kSmallestPairs.cpp",
+              "ToolTip": "D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_373_kSmallestPairs\\_373_kSmallestPairs\\_373_kSmallestPairs.cpp",
+              "RelativeToolTip": "_373_kSmallestPairs\\_373_kSmallestPairs.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-04-23T12:22:33.279Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

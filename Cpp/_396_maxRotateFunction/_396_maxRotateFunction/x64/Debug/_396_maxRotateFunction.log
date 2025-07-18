@@ -1,0 +1,4 @@
+﻿  _396_maxRotateFunction.cpp
+D:\C++_Study\LeetCode_C++\_396_maxRotateFunction\_396_maxRotateFunction\_396_maxRotateFunction.cpp(34,9): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\C++_Study\LeetCode_C++\_396_maxRotateFunction\_396_maxRotateFunction\_396_maxRotateFunction.cpp(43,4): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值
+  _396_maxRotateFunction.vcxproj -> D:\C++_Study\LeetCode_C++\_396_maxRotateFunction\x64\Debug\_396_maxRotateFunction.exe

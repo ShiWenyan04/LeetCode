@@ -1,0 +1,4 @@
+﻿  _2799_countCompleteSubarrays.cpp
+D:\C++_Study\LeetCode_C++\_2799_countCompleteSubarrays\_2799_countCompleteSubarrays\_2799_countCompleteSubarrays.cpp(18,15): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\C++_Study\LeetCode_C++\_2799_countCompleteSubarrays\_2799_countCompleteSubarrays\_2799_countCompleteSubarrays.cpp(25,17): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  _2799_countCompleteSubarrays.vcxproj -> D:\C++_Study\LeetCode_C++\_2799_countCompleteSubarrays\x64\Debug\_2799_countCompleteSubarrays.exe
