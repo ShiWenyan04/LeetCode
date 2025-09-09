@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_3329_countSubarrays\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{39EC86C7-9547-48E3-80A7-A06848659E67}|_3329_countSubarrays\\_3329_countSubarrays.vcxproj|D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_3329_countSubarrays\\_3329_countSubarrays\\_3329_countSubarrays.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{39EC86C7-9547-48E3-80A7-A06848659E67}|_3329_countSubarrays\\_3329_countSubarrays.vcxproj|solutionrelative:_3329_countSubarrays\\_3329_countSubarrays.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_3329_countSubarrays.cpp",
+              "DocumentMoniker": "D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_3329_countSubarrays\\_3329_countSubarrays\\_3329_countSubarrays.cpp",
+              "RelativeDocumentMoniker": "_3329_countSubarrays\\_3329_countSubarrays.cpp",
+              "ToolTip": "D:\\C\u002B\u002B_Study\\LeetCode_C\u002B\u002B\\_3329_countSubarrays\\_3329_countSubarrays\\_3329_countSubarrays.cpp",
+              "RelativeToolTip": "_3329_countSubarrays\\_3329_countSubarrays.cpp",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABoAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-04-27T13:24:35.879Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
