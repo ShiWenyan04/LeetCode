@@ -1,0 +1,36 @@
+class Solution {
+public:
+    int countCompleteSubarrays(vector<int>& nums) {
+        int n = nums.size();
+        int ans = 0;
+        // 找出 nums 中不同的元素的个数
+        unordered_map <int,int> set;
+        for (int i = 0; i < n; i++) {
+            set[nums[i]]++;
+        }
+        int cnt = set.size();
+
+        // 初始化滑动窗口
+        int left = 0, right = 0;
+        unordered_map <int, int> map;
+        // 滑动窗口
+        while (right < n) {
+            map[nums[right]]++;
+
+            // 计算当前窗口中的不同元素个数
+            while (map.size() == cnt) {
+                ans+=(n-right); //！！！！！确定左右以后，res 不能只 + 1 而是应该 right 到 nums.size() 都是合法结尾
+                                         //所以是 += (nums.size() - right)
+
+                // 收缩左边
+                map[nums[left]]--;
+                if (map[nums[left]] == 0) {
+                    map.erase(nums[left]);
+                }
+                left++;
+            }
+            right++;
+        }
+        return ans;
+    }
+};

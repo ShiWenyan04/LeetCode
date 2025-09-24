@@ -1,0 +1,28 @@
+class Solution {
+    public int beautifulSubsets(int[] nums, int k) {
+       List<List<Integer>>list = new ArrayList<>();
+        Method(nums,k,list,new ArrayList<>(),0);
+        return (list.size());
+    }
+    public static void Method(int []nums, int k, List<List<Integer>>list,List<Integer> list2,int index){
+        boolean judge = true;
+            for (int i = 0; i < list2.size(); i++) {
+                for (int j = i+1; j < list2.size(); j++) {
+                    if(Math.abs(list2.get(i) - list2.get(j)) == k){
+                        judge = false;
+                        return;
+                    }
+                }
+            }
+            if(judge && index!=0){
+                list.add(new ArrayList<>(list2));
+            }
+
+
+        for (; index < nums.length; index++) {
+            list2.add(nums[index]);
+            Method(nums,k,list,list2,index+1);
+            list2.remove(list2.size()-1);
+        }
+    }
+}
