@@ -1,0 +1,33 @@
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<Integer> rightSideView(TreeNode root) {
+        List<Integer> list = new ArrayList<>();
+        dfs(root,0,list);
+        return list;
+    }
+    // 先遍历右子树，可以优先获得右视图右子树的节点。在遍历左子树，如果同层次第一次遍历到，那么就可以存入list
+    public static void dfs(TreeNode root, int deepth,List<Integer> list){
+        if(root == null){
+            return;
+        }
+        if(list.size() == deepth){// 这个深度首次遇到
+            list.add(root.val);
+        }
+        dfs(root.right,deepth+1,list);
+        dfs(root.left,deepth+1,list);
+    }
+}
