@@ -1,6 +1,6 @@
 # LeetCode
 
-This repository stores my LeetCode solutions.
+这个仓库脚本主要是为了把我的力扣题目提交到github上面而设计的
 
 Existing folders:
 
