@@ -1,0 +1,24 @@
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDEs
+.idea/
+.vscode/
+
+# Visual Studio / C++ build output
+*.exe
+*.ilk
+*.pdb
+*.idb
+*.obj
+*.log
+*.recipe
+*.tlog
+x64/
+Debug/
+Release/
+build/
+target/
