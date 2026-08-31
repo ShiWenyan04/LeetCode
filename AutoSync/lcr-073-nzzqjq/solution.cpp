@@ -1,30 +1,31 @@
 class Solution {
 public:
-  int minEatingSpeed(vector<int>& piles, int h) {
-    int left = 1;
-    int right ;
-    for (int p:piles) {
-      right = max(right, p);
+    int minEatingSpeed(vector<int>& piles, int h) {
+        int low = 1;
+        int high = 0;
+        for (int pile : piles) {
+            high = max(high, pile);
+        }
+        int k = high;
+        while (low < high) {
+            int speed = (high - low) / 2 + low;
+            long time = getTime(piles, speed);
+            if (time <= h) {
+                k = speed;
+                high = speed;
+            } else {
+                low = speed + 1;
+            }
+        }
+        return k;
     }
-    int k = right;
-    while (left < right) {
-      int mid = left + (right - left) / 2;
-      long times = timeMethod(piles,mid);
-      if (times > h ) {
-        left = mid + 1;
-      }else {
-        k = mid;
-        right = mid;
-      }
+
+    long getTime(const vector<int>& piles, int speed) {
+        long time = 0;
+        for (int pile : piles) {
+            int curTime = (pile + speed - 1) / speed;
+            time += curTime;
+        }
+        return time;
     }
-    return k;
-  }
-  long timeMethod(vector<int>& piles,int v) {
-    long times = 0;
-    for (int p:piles) {
-      int cur = (p + v-1)/v;
-      times+= cur;
-    }
-    return times;
-  }
 };

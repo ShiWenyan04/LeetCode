@@ -11,7 +11,7 @@ class Solution {
 		
 		if(sum < 0) return -1;
 		
-		sum = 1;
+		sum = 0;
 		int count = 0;
 		PriorityQueue<Integer> queue = new PriorityQueue<Integer>();
 		for (int num : nums) {
@@ -19,7 +19,7 @@ class Solution {
 			if(num < 0) {
 				queue.offer(num);
 			}
-			if(sum <= 0) {
+			if(sum < 0) {
 				sum-=queue.poll();
 				count ++;
 			}

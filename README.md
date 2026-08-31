@@ -18,15 +18,21 @@ $env:LEETCODE_SESSION="your_LEETCODE_SESSION"
 $env:CSRF_TOKEN="your_csrftoken"
 ```
 
-Then run:
+Run the Java sync script:
 
 ```powershell
-python .\scripts\sync_leetcode_cn.py --all
+java .\scripts\LeetCodeCnSync.java --limit 20 --dry-run --debug
+java .\scripts\LeetCodeCnSync.java --all
 ```
 
 For daily updates:
 
 ```powershell
-python .\scripts\sync_leetcode_cn.py
+java .\scripts\LeetCodeCnSync.java
 ```
 
+The Python version is also available:
+
+```powershell
+python .\scripts\sync_leetcode_cn.py --all
+```
