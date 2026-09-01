@@ -608,7 +608,8 @@
         status: null,
         command: '',
         jobId: null,
-        pollTimer: null
+        pollTimer: null,
+        promptedJobs: new Set()
     };
 
     const el = {
@@ -750,6 +751,7 @@
                 state.jobId = null;
                 setRunning(false);
                 await refreshStatus();
+                await askForNextBatch(data);
             }
         } catch (error) {
             stopPolling();
@@ -775,6 +777,36 @@
         if (data.checkedAt) {
             el.lastChecked.textContent = '日志刷新：' + new Date(data.checkedAt).toLocaleString();
         }
+    }
+
+    async function askForNextBatch(data) {
+        if (!shouldAskForNextBatch(data)) {
+            return;
+        }
+        state.promptedJobs.add(data.jobId);
+        const maxSync = Number(el.maxSync.value || 0);
+        const ok = window.confirm(
+            '本批同步已完成，并且已经按当前执行模式处理 Git。\n\n'
+            + '是否继续下一批？\n\n'
+            + '当前每批最多同步：' + maxSync + ' 个'
+        );
+        if (ok) {
+            el.toast.textContent = '继续同步下一批...';
+            await runSync();
+        } else {
+            el.toast.textContent = '已停止在当前批次';
+        }
+    }
+
+    function shouldAskForNextBatch(data) {
+        if (!data || !data.success || state.promptedJobs.has(data.jobId)) {
+            return false;
+        }
+        const maxSync = Number(el.maxSync.value || 0);
+        return el.scope.value === 'all'
+            && state.mode !== 'preview'
+            && maxSync > 0
+            && (data.stdout || '').includes('Reached --max-sync');
     }
 
     async function cancelSync() {

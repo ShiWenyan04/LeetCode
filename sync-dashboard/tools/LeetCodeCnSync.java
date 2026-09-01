@@ -562,7 +562,9 @@ public class LeetCodeCnSync {
 
         System.out.println("Changed files:");
         System.out.println(status.stdout.trim());
+        System.out.println("Staging sync changes...");
         stageSyncChanges(root);
+        System.out.println("Creating git commit...");
         ProcessResult commit = run(
                 List.of("git", "commit", "-m", "sync: update leetcode solutions " + java.time.LocalDate.now()),
                 root,
@@ -589,6 +591,7 @@ public class LeetCodeCnSync {
             System.exit(1);
         }
 
+        System.out.println("Pushing to origin...");
         ProcessResult push = run(List.of("git", "push"), root, false);
         if (push.exitCode != 0) {
             System.out.println(push.stdout.trim());
@@ -631,6 +634,7 @@ public class LeetCodeCnSync {
     private static void printIfPresent(String text) {
         if (!text.isBlank()) {
             System.out.println(text.trim());
+            System.out.flush();
         }
     }
 
