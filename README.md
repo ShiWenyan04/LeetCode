@@ -28,11 +28,5 @@ java .\scripts\LeetCodeCnSync.java --all
 For daily updates:
 
 ```powershell
-java .\scripts\LeetCodeCnSync.java
-```
-
-The Python version is also available:
-
-```powershell
-python .\scripts\sync_leetcode_cn.py --all
+mvn spring-boot:run
 ```
