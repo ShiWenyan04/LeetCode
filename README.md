@@ -26,7 +26,7 @@ java .\scripts\LeetCodeCnSync.java --all
 ```
 
 For daily updates:
-
+进入到这个文件路径下，然后执行以下命令：
 ```powershell
 mvn spring-boot:run
 ```
