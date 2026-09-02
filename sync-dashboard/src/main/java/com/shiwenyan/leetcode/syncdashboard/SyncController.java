@@ -37,24 +37,30 @@ public class SyncController {
     private static final Duration SYNC_TIMEOUT = Duration.ofHours(4);
     private static final int MAX_LOG_CHARS = 300_000;
 
+    private final Path appRoot;
     private final Path repoRoot;
-    private final String syncScript;
+    private final Path syncScript;
+    private final String outputDir;
     private final Map<String, SyncJob> jobs = new ConcurrentHashMap<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public SyncController(
             @Value("${leetcode.repo-root:..}") String repoRoot,
-            @Value("${leetcode.sync-script:sync-dashboard/tools/LeetCodeCnSync.java}") String syncScript
+            @Value("${leetcode.sync-script:tools/LeetCodeCnSync.java}") String syncScript,
+            @Value("${leetcode.output-dir:AutoSync}") String outputDir
     ) {
-        this.repoRoot = Path.of(repoRoot).toAbsolutePath().normalize();
-        this.syncScript = syncScript;
+        this.appRoot = Path.of("").toAbsolutePath().normalize();
+        this.repoRoot = resolvePath(repoRoot, appRoot);
+        this.syncScript = resolvePath(syncScript, appRoot);
+        this.outputDir = blankToDefault(outputDir, "AutoSync").replace('\\', '/');
     }
 
     @GetMapping("/status")
     public DashboardStatus status() {
         return new DashboardStatus(
                 repoRoot.toString(),
-                Files.exists(repoRoot.resolve(syncScript)),
+                Files.exists(syncScript),
+                outputDir,
                 envPresent("LEETCODE_SESSION"),
                 envPresent("CSRF_TOKEN") || envPresent("csrftoken"),
                 maskedEnv("LEETCODE_SESSION"),
@@ -167,7 +173,11 @@ public class SyncController {
 
         List<String> command = new ArrayList<>();
         command.add("java");
-        command.add(syncScript);
+        command.add(syncScript.toString());
+        command.add("--repo-root");
+        command.add(repoRoot.toString());
+        command.add("--output-dir");
+        command.add(outputDir);
         if ("all".equals(scope)) {
             command.add("--all");
         } else {
@@ -218,7 +228,7 @@ public class SyncController {
     }
 
     private int autoSyncProblemCount() {
-        Path autoSync = repoRoot.resolve("AutoSync");
+        Path autoSync = repoRoot.resolve(outputDir).normalize();
         if (!Files.isDirectory(autoSync)) {
             return 0;
         }
@@ -270,6 +280,14 @@ public class SyncController {
         return isBlank(value) ? fallback : value;
     }
 
+    private static Path resolvePath(String value, Path base) {
+        Path path = Path.of(blankToDefault(value, "."));
+        if (!path.isAbsolute()) {
+            path = base.resolve(path);
+        }
+        return path.normalize();
+    }
+
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
@@ -283,6 +301,7 @@ public class SyncController {
     public record DashboardStatus(
             String repoRoot,
             boolean syncScriptFound,
+            String outputDir,
             boolean leetcodeSessionPresent,
             boolean csrfTokenPresent,
             String leetcodeSessionMask,

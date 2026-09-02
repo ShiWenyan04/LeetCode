@@ -29,7 +29,7 @@ public class LeetCodeCnSync {
     private static final String GRAPHQL_URL = "https://leetcode.cn/graphql/";
     private static final String PROBLEMS_URL = "https://leetcode.cn/api/problems/all/";
     private static final String BASE_URL = "https://leetcode.cn";
-    private static final String AUTOSYNC_DIR = "AutoSync";
+    private static final String DEFAULT_OUTPUT_DIR = "AutoSync";
     private static final String STATE_FILE = ".leetcode-sync-state.json";
     private static final int MAX_HTTP_ATTEMPTS = 4;
     private static final int MAX_GRAPHQL_ATTEMPTS = 30;
@@ -114,7 +114,8 @@ public class LeetCodeCnSync {
             System.exit(2);
         }
 
-        Path root = repoRoot();
+        Path root = options.repoRoot == null ? repoRoot() : Path.of(options.repoRoot).toAbsolutePath().normalize();
+        String outputDir = normalizeOutputDir(options.outputDir);
         SyncState state = SyncState.load(root.resolve(STATE_FILE));
 
         Map<String, Object> userStatus = fetchUserStatus(session, csrfToken);
@@ -150,7 +151,7 @@ public class LeetCodeCnSync {
             String problemLang = value(item.get("problemSlug")) + "|" + value(item.get("lang"));
 
             if (state.syncedSubmissionIds.contains(submissionId)) {
-                if (syncedOutputExists(root, item)) {
+                if (syncedOutputExists(root, item, outputDir)) {
                     skippedCount++;
                     continue;
                 }
@@ -167,7 +168,7 @@ public class LeetCodeCnSync {
             }
 
             if (options.dryRun) {
-                Path solution = previewSolutionPath(root, item);
+                Path solution = previewSolutionPath(root, item, outputDir);
                 System.out.println("Would sync " + submissionId + ": " + root.relativize(solution));
                 plannedCount++;
             } else {
@@ -182,8 +183,8 @@ public class LeetCodeCnSync {
                     continue;
                 }
 
-                Path solution = solutionPath(root, details);
-                writeSubmission(root, details);
+                Path solution = solutionPath(root, details, outputDir);
+                writeSubmission(root, details, outputDir);
                 state.syncedSubmissionIds.add(submissionId);
                 state.save(root.resolve(STATE_FILE));
                 syncedCount++;
@@ -196,7 +197,7 @@ public class LeetCodeCnSync {
             state.save(root.resolve(STATE_FILE));
         }
         System.out.println("Synced: " + syncedCount + "; skipped: " + skippedCount + "; accepted scanned: " + submissions.size());
-        commitAndPush(root, options.noPush, options.dryRun);
+        commitAndPush(root, outputDir, options.noPush, options.dryRun);
     }
 
     private static Map<String, Object> fetchUserStatus(String session, String csrfToken) throws IOException {
@@ -491,29 +492,42 @@ public class LeetCodeCnSync {
         return Path.of(result.stdout.trim());
     }
 
-    private static void writeSubmission(Path root, Map<String, Object> details) throws IOException {
-        Path path = solutionPath(root, details);
+    private static String normalizeOutputDir(String outputDir) {
+        String value = firstNonBlank(outputDir, DEFAULT_OUTPUT_DIR).replace('\\', '/').trim();
+        Path path = Path.of(value);
+        if (path.isAbsolute()) {
+            throw new IllegalArgumentException("--output-dir must be relative to --repo-root.");
+        }
+        String normalized = path.normalize().toString().replace('\\', '/');
+        if (normalized.isBlank() || ".".equals(normalized) || normalized.startsWith("..")) {
+            throw new IllegalArgumentException("--output-dir must stay inside --repo-root.");
+        }
+        return normalized;
+    }
+
+    private static void writeSubmission(Path root, Map<String, Object> details, String outputDir) throws IOException {
+        Path path = solutionPath(root, details, outputDir);
         Files.createDirectories(path.getParent());
         Files.writeString(path, value(details.get("code")).stripTrailing() + System.lineSeparator(), StandardCharsets.UTF_8);
         Files.writeString(readmePath(path), makeReadme(details), StandardCharsets.UTF_8);
     }
 
-    private static Path solutionPath(Path root, Map<String, Object> details) {
+    private static Path solutionPath(Path root, Map<String, Object> details, String outputDir) {
         String frontendId = safePart(firstNonBlank(value(details.get("problemFrontendId")), "unknown"));
         String slug = safePart(firstNonBlank(value(details.get("problemSlug")), value(details.get("problemTitle")), value(details.get("title")), "problem"));
         String ext = languageExtension(value(details.get("lang")));
-        return root.resolve(AUTOSYNC_DIR).resolve(frontendId + "-" + slug).resolve("solution." + ext);
+        return root.resolve(outputDir).resolve(frontendId + "-" + slug).resolve("solution." + ext);
     }
 
-    private static Path previewSolutionPath(Path root, Map<String, Object> submission) {
+    private static Path previewSolutionPath(Path root, Map<String, Object> submission, String outputDir) {
         String frontendId = safePart(firstNonBlank(value(submission.get("problemFrontendId")), "unknown"));
         String slug = safePart(firstNonBlank(value(submission.get("problemSlug")), value(submission.get("problemTitle")), value(submission.get("title")), "problem"));
         String ext = languageExtension(value(submission.get("lang")));
-        return root.resolve(AUTOSYNC_DIR).resolve(frontendId + "-" + slug).resolve("solution." + ext);
+        return root.resolve(outputDir).resolve(frontendId + "-" + slug).resolve("solution." + ext);
     }
 
-    private static boolean syncedOutputExists(Path root, Map<String, Object> submission) {
-        Path solution = previewSolutionPath(root, submission);
+    private static boolean syncedOutputExists(Path root, Map<String, Object> submission, String outputDir) {
+        Path solution = previewSolutionPath(root, submission, outputDir);
         return Files.exists(solution) && Files.exists(readmePath(solution));
     }
 
@@ -545,7 +559,7 @@ public class LeetCodeCnSync {
         }
     }
 
-    private static void commitAndPush(Path root, boolean noPush, boolean dryRun) throws IOException, InterruptedException {
+    private static void commitAndPush(Path root, String outputDir, boolean noPush, boolean dryRun) throws IOException, InterruptedException {
         if (dryRun) {
             System.out.println("Dry run enabled; no files were written and git was not changed.");
             return;
@@ -563,7 +577,7 @@ public class LeetCodeCnSync {
         System.out.println("Changed files:");
         System.out.println(status.stdout.trim());
         System.out.println("Staging sync changes...");
-        stageSyncChanges(root);
+        stageSyncChanges(root, outputDir);
         System.out.println("Creating git commit...");
         ProcessResult commit = run(
                 List.of("git", "commit", "-m", "sync: update leetcode solutions " + java.time.LocalDate.now()),
@@ -638,8 +652,8 @@ public class LeetCodeCnSync {
         }
     }
 
-    private static void stageSyncChanges(Path root) throws IOException, InterruptedException {
-        List<String> candidates = List.of(AUTOSYNC_DIR, STATE_FILE, ".gitignore", "README.md", "sync-dashboard", "scripts");
+    private static void stageSyncChanges(Path root, String outputDir) throws IOException, InterruptedException {
+        List<String> candidates = List.of(outputDir, STATE_FILE, ".gitignore", "README.md", "sync-dashboard", "scripts");
         List<String> paths = new ArrayList<>();
         for (String candidate : candidates) {
             if (Files.exists(root.resolve(candidate)) || hasGitChanges(root, candidate)) {
@@ -667,23 +681,46 @@ public class LeetCodeCnSync {
                 .directory(cwd.toFile())
                 .redirectErrorStream(false)
                 .start();
-        String stdout = readAll(process.getInputStream());
-        String stderr = readAll(process.getErrorStream());
+        StreamReader stdoutReader = new StreamReader(process.getInputStream());
+        StreamReader stderrReader = new StreamReader(process.getErrorStream());
+        stdoutReader.start();
+        stderrReader.start();
         int exitCode = process.waitFor();
+        stdoutReader.join();
+        stderrReader.join();
+        String stdout = stdoutReader.output();
+        String stderr = stderrReader.output();
         if (check && exitCode != 0) {
             throw new RuntimeException(String.join(" ", command) + " failed: " + stderr);
         }
         return new ProcessResult(exitCode, stdout, stderr);
     }
 
-    private static String readAll(InputStream stream) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()))) {
-            StringBuilder out = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line).append(System.lineSeparator());
+    private static final class StreamReader extends Thread {
+        private final InputStream stream;
+        private final StringBuilder out = new StringBuilder();
+
+        private StreamReader(InputStream stream) {
+            this.stream = stream;
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    out.append(line).append(System.lineSeparator());
+                }
+            } catch (IOException ex) {
+                out.append(ex).append(System.lineSeparator());
             }
-            return out.toString();
+        }
+
+        private String output() {
+            synchronized (out) {
+                return out.toString();
+            }
         }
     }
 
@@ -749,6 +786,8 @@ public class LeetCodeCnSync {
         boolean all;
         int limit = 50;
         int maxSync;
+        String repoRoot;
+        String outputDir = DEFAULT_OUTPUT_DIR;
         boolean noPush;
         boolean dryRun;
         boolean debug;
@@ -776,6 +815,18 @@ public class LeetCodeCnSync {
                         }
                         options.maxSync = Integer.parseInt(args[++i]);
                     }
+                    case "--repo-root" -> {
+                        if (i + 1 >= args.length) {
+                            throw new IllegalArgumentException("--repo-root requires a path.");
+                        }
+                        options.repoRoot = args[++i];
+                    }
+                    case "--output-dir" -> {
+                        if (i + 1 >= args.length) {
+                            throw new IllegalArgumentException("--output-dir requires a directory name.");
+                        }
+                        options.outputDir = args[++i];
+                    }
                     default -> throw new IllegalArgumentException("Unknown argument: " + arg);
                 }
             }
@@ -785,12 +836,14 @@ public class LeetCodeCnSync {
         static void printHelp() {
             System.out.println("""
                     Usage:
-                      java .\\sync-dashboard\\tools\\LeetCodeCnSync.java [options]
+                      java .\\tools\\LeetCodeCnSync.java [options]
 
                     Options:
                       --all          Fetch all visible accepted problems.
                       --limit N      Recent accepted problems to scan when --all is not set. Default: 50.
                       --max-sync N   Sync at most N new accepted submissions in this run. Default: unlimited.
+                      --repo-root P  Target git repository for generated solutions. Default: current git repository.
+                      --output-dir D Solution directory inside --repo-root. Default: AutoSync.
                       --no-push      Commit locally but do not push.
                       --dry-run      Fetch and show what would be written.
                       --debug        Print scanned submission statuses.

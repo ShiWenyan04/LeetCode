@@ -1,0 +1,12 @@
+target/
+*.class
+
+.env
+.leetcode-sync-state.json
+AutoSync/
+
+.idea/
+.vscode/
+*.iml
+
+*.log

@@ -20,7 +20,8 @@
 ## 项目结构
 
 ```text
-sync-dashboard/
+leetcode-sync-dashboard/
+├── .gitignore
 ├── pom.xml
 ├── setup_daily_sync.ps1
 ├── tools/
@@ -41,6 +42,53 @@ sync-dashboard/
 - Git
 - 一个已经登录过 leetcode.cn 的浏览器账号
 - 一个本地 Git 仓库，建议已配置 GitHub remote
+
+## 使用前配置
+
+复制或 clone 本项目后，先打开配置文件：
+
+```text
+src/main/resources/application.properties
+```
+
+配置示例：
+
+```properties
+server.port=8848
+server.address=127.0.0.1
+
+# 题解要保存到哪个本地 Git 仓库
+leetcode.repo-root=D:/Study/Code/LeetCode
+
+# 题解保存在题解仓库里的哪个目录
+leetcode.output-dir=AutoSync
+
+# 同步脚本位置。相对路径会从本工具项目目录开始解析
+leetcode.sync-script=tools/LeetCodeCnSync.java
+```
+
+配置项说明：
+
+- `leetcode.repo-root`：目标题解仓库路径，必须是一个 Git 仓库
+- `leetcode.output-dir`：题解输出目录，相对于 `leetcode.repo-root`
+- `leetcode.sync-script`：核心同步脚本路径，通常保持默认值
+- `server.port`：Web 页面端口，默认 `8848`
+
+如果本工具放在题解仓库内部，可以使用：
+
+```properties
+leetcode.repo-root=..
+leetcode.output-dir=AutoSync
+leetcode.sync-script=tools/LeetCodeCnSync.java
+```
+
+如果本工具是独立项目，建议使用绝对路径：
+
+```properties
+leetcode.repo-root=D:/your/path/leetcode-solutions
+leetcode.output-dir=AutoSync
+leetcode.sync-script=tools/LeetCodeCnSync.java
+```
 
 ## Cookie 配置
 
@@ -66,10 +114,10 @@ leetcode.cn -> DevTools -> Application -> Cookies
 
 ## 启动 Web 界面
 
-在仓库根目录的 `sync-dashboard` 下启动：
+进入本工具项目目录后启动：
 
 ```powershell
-cd D:\Study\Code\LeetCode\src\sync-dashboard
+cd D:\Study\Code\leetcode-sync-dashboard
 mvn spring-boot:run
 ```
 
@@ -77,19 +125,6 @@ mvn spring-boot:run
 
 ```text
 http://127.0.0.1:8848
-```
-
-默认配置在：
-
-```text
-src/main/resources/application.properties
-```
-
-当前默认端口：
-
-```properties
-server.port=8848
-server.address=127.0.0.1
 ```
 
 ## 推荐用法
@@ -122,24 +157,24 @@ server.address=127.0.0.1
 不启动 Web，也可以直接运行核心同步脚本：
 
 ```powershell
-cd D:\Study\Code\LeetCode\src
-java .\sync-dashboard\tools\LeetCodeCnSync.java --limit 20 --dry-run
+cd D:\Study\Code\leetcode-sync-dashboard
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --limit 20 --dry-run
 ```
 
 常用命令：
 
 ```powershell
 # 预览最近 20 条 AC 提交，不写文件
-java .\sync-dashboard\tools\LeetCodeCnSync.java --limit 20 --dry-run
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --limit 20 --dry-run
 
 # 同步最近提交，生成本地 commit，但不 push
-java .\sync-dashboard\tools\LeetCodeCnSync.java --limit 20 --max-sync 30 --no-push
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --limit 20 --max-sync 30 --no-push
 
 # 同步最近提交，并自动 push
-java .\sync-dashboard\tools\LeetCodeCnSync.java --limit 20 --max-sync 30
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --limit 20 --max-sync 30
 
 # 分批同步全部历史
-java .\sync-dashboard\tools\LeetCodeCnSync.java --all --max-sync 30 --no-push
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30 --no-push
 ```
 
 参数说明：
@@ -147,6 +182,8 @@ java .\sync-dashboard\tools\LeetCodeCnSync.java --all --max-sync 30 --no-push
 - `--all`：扫描所有已通过题目
 - `--limit N`：不使用 `--all` 时，扫描最近 N 个已通过题目
 - `--max-sync N`：本次最多同步 N 个新的 AC 提交，`0` 表示不限制
+- `--repo-root P`：目标题解 Git 仓库路径
+- `--output-dir D`：题解输出目录，相对于 `--repo-root`
 - `--dry-run`：只预览，不写入文件，不提交 Git
 - `--no-push`：写入并生成本地 commit，但不推送
 - `--debug`：输出更详细的扫描日志
@@ -156,8 +193,8 @@ java .\sync-dashboard\tools\LeetCodeCnSync.java --all --max-sync 30 --no-push
 Windows 下可以创建每日定时任务：
 
 ```powershell
-cd D:\Study\Code\LeetCode\src
-powershell -ExecutionPolicy Bypass -File .\sync-dashboard\setup_daily_sync.ps1 -RunTime "23:30"
+cd D:\Study\Code\leetcode-sync-dashboard
+powershell -ExecutionPolicy Bypass -File .\setup_daily_sync.ps1 -RepoRoot "D:\Study\Code\LeetCode" -OutputDir "AutoSync" -RunTime "23:30"
 ```
 
 定时任务会执行最近提交同步，并限制单次同步数量，避免触发频繁限流。
@@ -189,6 +226,24 @@ AutoSync/
 
 这个文件用来避免重复同步同一条提交。如果删除它，工具会认为所有题目都没有同步过。
 
+## 题解仓库要求
+
+目标题解目录需要是一个 Git 仓库。新建题解仓库可以这样做：
+
+```powershell
+mkdir D:\Study\Code\LeetCode
+cd D:\Study\Code\LeetCode
+git init
+git branch -M main
+git remote add origin https://github.com/your-name/your-repo.git
+```
+
+如果已经有 GitHub 仓库，直接 clone：
+
+```powershell
+git clone https://github.com/your-name/your-repo.git D:\Study\Code\LeetCode
+```
+
 ## 常见问题
 
 ### leetcode.cn 提示超出访问限制
@@ -196,7 +251,7 @@ AutoSync/
 leetcode.cn 对提交详情接口有限流。工具已经内置等待和重试，但全量历史仍建议使用分批同步：
 
 ```powershell
-java .\sync-dashboard\tools\LeetCodeCnSync.java --all --max-sync 30 --no-push
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30 --no-push
 ```
 
 ### push 被 GitHub 拒绝
@@ -214,7 +269,7 @@ git pull --rebase --autostash origin main
 这通常是另一个 Git 进程还在运行，或者上一次 Git 操作异常退出。先关闭正在运行的同步任务，再确认没有 Git 进程后删除：
 
 ```powershell
-Remove-Item -LiteralPath "D:\Study\Code\LeetCode\src\.git\index.lock"
+Remove-Item -LiteralPath "D:\Study\Code\LeetCode\.git\index.lock"
 ```
 
 ### 不想提交工具，只想同步题目
@@ -227,22 +282,10 @@ git commit -m "sync: update leetcode solutions"
 git push
 ```
 
-## 后续开源计划
-
-如果要把这个工具独立成一个开源项目，建议调整为：
-
-```text
-leetcode-sync-dashboard/
-├── README.md
-├── LICENSE
-├── pom.xml
-├── tools/
-└── src/
-```
+## 独立开源发布建议
 
 可以继续补充的能力：
 
-- 支持自定义输出目录
 - 支持配置文件保存 Cookie 名称、仓库路径、同步目录
 - 支持多账号或多仓库
 - 支持同步统计图表

@@ -508,7 +508,7 @@
 
             <div class="stats">
                 <div class="stat">
-                    <span class="muted small">AutoSync 题目</span>
+                    <span class="muted small" id="outputDirLabel">AutoSync 题目</span>
                     <span class="stat-value" id="problemCount">0</span>
                 </div>
                 <div class="stat">
@@ -623,6 +623,7 @@
         problemCount: document.getElementById('problemCount'),
         submissionCount: document.getElementById('submissionCount'),
         dirtyCount: document.getElementById('dirtyCount'),
+        outputDirLabel: document.getElementById('outputDirLabel'),
         refreshBtn: document.getElementById('refreshBtn'),
         copyBtn: document.getElementById('copyBtn'),
         cancelBtn: document.getElementById('cancelBtn'),
@@ -677,6 +678,7 @@
         state.status = data;
         el.repoRoot.textContent = data.repoRoot;
         el.branch.textContent = data.branch || '-';
+        el.outputDirLabel.textContent = (data.outputDir || 'AutoSync') + ' 题目';
         el.problemCount.textContent = data.autoSyncProblemCount;
         el.submissionCount.textContent = data.syncedSubmissionCount;
         el.dirtyCount.textContent = data.dirtyFileCount;

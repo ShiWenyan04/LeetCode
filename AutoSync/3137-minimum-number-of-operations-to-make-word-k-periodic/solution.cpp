@@ -1,0 +1,17 @@
+class Solution {
+public:
+    int minimumOperationsToMakeKPeriodic(string word, int k) {
+        return Method(word,k);
+    }
+    int Method(string word,int k){
+	int n = word.size();
+	unordered_map<string,int> hashmap;
+	int res = INT_MAX;
+	for(int i = 0;i < n;i+=k){
+		string part = word.substr(i,k);
+		hashmap[part]++;
+		res = min(res,n/k-hashmap[part]);
+	} 
+	return res;
+}
+};
