@@ -1,0 +1,57 @@
+class Solution {
+    
+vector<vector<string>> list;// 用于存储最终的所有解法
+
+//判断
+bool judge(int i, vector<int>& q) {
+	int row = q.size();
+	if (row == 0) {//如果是第一个皇后，随便放都可以
+		return true;
+	}
+	for (int k = 0; k < row; k++) {//否则判断前面的皇后是否和当前的同列或同对角线
+		if (q[k] == i) {//同列
+			return false;
+		}else if ( abs(q[k] - i) == abs(row - k) ) {//同对角线
+			return false;
+		}
+	}
+	return true;
+}
+
+//棋盘打印
+vector<string> board(vector<int>q,int n) {
+	vector<string> b;
+	for (int i = 0; i < n; i++) {//枚举行
+		string row(n, '.');//初始化每行为“."
+		int idx = q[i];//当前行皇后存放的位置
+		row[idx] = 'Q';
+		b.push_back(row);//行存入棋盘
+	}
+	return b;
+}
+
+//递归
+void dfs(int n,vector<int>& q) {
+	if (q.size() == n) {//如果放置了n个皇后，表示找到了一种解法
+		list.push_back(board(q, n));//棋盘
+		return;
+	}
+	
+	for (int i = 0; i < n; i++) {//当前行遍历每一列，判断之前的皇后是否与之同列
+		if (judge(i, q)) {
+			q.push_back(i);//放置皇后
+			dfs(n, q);//dfs
+			q.pop_back();//回溯
+		}
+	}
+}
+
+
+public :
+	vector<vector<string>> solveNQueens(int n){
+		list.clear();
+		vector<int> q;//存放皇后每一行的位置
+		dfs(n,q);
+		return list;
+	}
+};
