@@ -1,0 +1,12 @@
+class Solution {
+public:
+    bool checkPowersOfThree(int n) {
+        while (n > 0) {
+            if (n % 3 == 2) { // 三进制位出现 2 ，说明不能由不同三的幂组成
+                return false;
+            }
+            n /= 3;
+        }
+        return true;
+    }
+};
