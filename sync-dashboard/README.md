@@ -1,21 +1,25 @@
 # LeetCode Sync Dashboard
 
-一个面向 leetcode.cn 的本地可视化同步工具，用来把账号里的 AC 提交同步到本地 Git 仓库，并可选择自动 commit / push 到 GitHub。
+一个面向 `leetcode.cn` 的本地可视化同步工具，用来把账号里的 AC 提交同步到本地 Git 题解仓库，并可选择自动 `commit` / `push` 到 GitHub。
 
-这个项目最初是为个人刷题仓库定制的，核心目标是解决一个很日常的问题：题写完了，但经常忘记把代码整理并提交到 GitHub。工具启动后可以在浏览器里选择同步范围、执行模式、批量大小，并查看实时日志。
+它适合两种场景：
+
+- 第一次整理历史题解：分批拉取所有已通过题目，自动生成目录和 README
+- 日常刷题闭环：刷完题后同步最近提交，自动写入、提交并推送
 
 ## 功能
 
-- 从 leetcode.cn 读取已通过题目和 AC 提交
-- 自动生成 `AutoSync/{题号}-{slug}/solution.xxx`
+- 读取 `leetcode.cn` 已通过题目和 AC 提交
+- 生成 `AutoSync/{题号}-{slug}/solution.xxx`
 - 为每道题生成简洁的 `README.md`
 - 支持 Java、C++、C、Python、MySQL 等常见提交语言
-- 支持预览、本地提交、提交并推送三种模式
-- 支持全量历史分批同步，避免 leetcode.cn 限流导致长时间卡住
-- 全量分批同步时，每批成功结束后会询问是否继续下一批
-- 支持后台运行、实时日志、任务取消
-- 推送前自动 `git pull --rebase --autostash`，减少远程分支领先导致的 push 失败
-- 使用 `.leetcode-sync-state.json` 记录已同步提交，重复运行会自动跳过
+- 支持预览、本地提交、自动推送三种模式
+- 全量历史支持分批同步和断点续扫
+- 同步结束后可继续下一批
+- 页面内保存本地配置：题解仓库、输出目录、同步脚本、Cookie
+- 页面内置诊断：Java、Maven、Git、仓库、origin、Cookie、`index.lock`
+- 推送前自动执行 `git pull --rebase --autostash`
+- 使用 `.leetcode-sync-state.json` 记录同步状态，避免重复拉取
 
 ## 项目结构
 
@@ -23,6 +27,7 @@
 leetcode-sync-dashboard/
 ├── .gitignore
 ├── pom.xml
+├── README.md
 ├── setup_daily_sync.ps1
 ├── tools/
 │   └── LeetCodeCnSync.java
@@ -40,81 +45,12 @@ leetcode-sync-dashboard/
 - JDK 17 或更高版本
 - Maven 3.8 或更高版本
 - Git
-- 一个已经登录过 leetcode.cn 的浏览器账号
-- 一个本地 Git 仓库，建议已配置 GitHub remote
+- 一个已经登录过 `leetcode.cn` 的账号
+- 一个本地 Git 题解仓库，建议已经配置 GitHub `origin`
 
-## 使用前配置
+## 启动
 
-复制或 clone 本项目后，先打开配置文件：
-
-```text
-src/main/resources/application.properties
-```
-
-配置示例：
-
-```properties
-server.port=8848
-server.address=127.0.0.1
-
-# 题解要保存到哪个本地 Git 仓库
-leetcode.repo-root=D:/Study/Code/LeetCode
-
-# 题解保存在题解仓库里的哪个目录
-leetcode.output-dir=AutoSync
-
-# 同步脚本位置。相对路径会从本工具项目目录开始解析
-leetcode.sync-script=tools/LeetCodeCnSync.java
-```
-
-配置项说明：
-
-- `leetcode.repo-root`：目标题解仓库路径，必须是一个 Git 仓库
-- `leetcode.output-dir`：题解输出目录，相对于 `leetcode.repo-root`
-- `leetcode.sync-script`：核心同步脚本路径，通常保持默认值
-- `server.port`：Web 页面端口，默认 `8848`
-
-如果本工具放在题解仓库内部，可以使用：
-
-```properties
-leetcode.repo-root=..
-leetcode.output-dir=AutoSync
-leetcode.sync-script=tools/LeetCodeCnSync.java
-```
-
-如果本工具是独立项目，建议使用绝对路径：
-
-```properties
-leetcode.repo-root=D:/your/path/leetcode-solutions
-leetcode.output-dir=AutoSync
-leetcode.sync-script=tools/LeetCodeCnSync.java
-```
-
-## Cookie 配置
-
-工具需要读取 leetcode.cn 的登录 Cookie。启动前设置两个环境变量：
-
-```powershell
-$env:LEETCODE_SESSION="your_LEETCODE_SESSION"
-$env:CSRF_TOKEN="your_csrftoken"
-```
-
-这些值可以从浏览器开发者工具中获取：
-
-```text
-leetcode.cn -> DevTools -> Application -> Cookies
-```
-
-需要的字段是：
-
-- `LEETCODE_SESSION`
-- `csrftoken`
-
-注意：不要把真实 Cookie 写进代码、README 或提交到 GitHub。
-
-## 启动 Web 界面
-
-进入本工具项目目录后启动：
+进入本项目目录：
 
 ```powershell
 cd D:\Study\Code\leetcode-sync-dashboard
@@ -126,6 +62,74 @@ mvn spring-boot:run
 ```text
 http://127.0.0.1:8848
 ```
+
+如果端口被占用，可以换端口：
+
+```powershell
+mvn spring-boot:run '-Dspring-boot.run.arguments=--server.port=8899'
+```
+
+## 配置
+
+启动后可以直接在页面左侧“本地配置”里填写并保存：
+
+- 题解仓库路径：代码要保存到哪个本地 Git 仓库
+- 输出目录：默认 `AutoSync`
+- 同步脚本路径：默认 `tools/LeetCodeCnSync.java`
+- `LEETCODE_SESSION`
+- `CSRF_TOKEN`
+
+配置会保存到用户目录：
+
+```text
+C:\Users\<你的用户名>\.leetcode-sync-dashboard\config.json
+```
+
+这个文件只在本机使用，不要提交到 GitHub。
+
+也可以继续使用环境变量：
+
+```powershell
+$env:LEETCODE_SESSION="your_LEETCODE_SESSION"
+$env:CSRF_TOKEN="your_csrftoken"
+```
+
+Cookie 可以从浏览器开发者工具获取：
+
+```text
+leetcode.cn -> DevTools -> Application -> Cookies
+```
+
+需要的字段是：
+
+- `LEETCODE_SESSION`
+- `csrftoken`
+
+## application.properties
+
+默认配置在：
+
+```text
+src/main/resources/application.properties
+```
+
+如果工具目录放在题解仓库内部，推荐：
+
+```properties
+leetcode.repo-root=..
+leetcode.output-dir=AutoSync
+leetcode.sync-script=tools/LeetCodeCnSync.java
+```
+
+如果工具作为独立项目运行，推荐使用绝对路径：
+
+```properties
+leetcode.repo-root=D:/your/path/leetcode-solutions
+leetcode.output-dir=AutoSync
+leetcode.sync-script=tools/LeetCodeCnSync.java
+```
+
+页面里保存的配置优先级高于 `application.properties`。
 
 ## 推荐用法
 
@@ -143,22 +147,31 @@ http://127.0.0.1:8848
 
 ```text
 同步范围：全量历史
-本批最多同步：30
-执行模式：写入并本地提交
+本批最多同步：30 或 50
+执行模式：写入、提交并推送
 调试输出：不勾选
 ```
 
-全量历史建议分批跑。每批完成后检查 `AutoSync/`，确认没问题再继续下一批或推送。
+全量历史会记录扫描游标。本批同步结束后，下一批会从上次位置继续，不再每次都从第 1 道已通过题目开始扫。
 
-在 Web 界面中，如果选择 `全量历史` 且设置了 `本批最多同步`，每批成功结束后会弹窗询问是否继续下一批。选择继续会沿用当前配置再次启动同步；选择取消则停在当前批次。
+如果你想重新从头扫描全量历史，可以勾选：
+
+```text
+重置全量扫描游标
+```
 
 ## 命令行使用
 
-不启动 Web，也可以直接运行核心同步脚本：
+不启动 Web，也可以直接运行核心脚本：
 
 ```powershell
 cd D:\Study\Code\leetcode-sync-dashboard
-java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --limit 20 --dry-run
+
+java .\tools\LeetCodeCnSync.java `
+  --repo-root D:\Study\Code\LeetCode `
+  --output-dir AutoSync `
+  --limit 20 `
+  --dry-run
 ```
 
 常用命令：
@@ -174,7 +187,10 @@ java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir
 java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --limit 20 --max-sync 30
 
 # 分批同步全部历史
-java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30 --no-push
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30
+
+# 重置全量扫描游标
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30 --reset-cursor
 ```
 
 参数说明：
@@ -187,23 +203,11 @@ java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir
 - `--dry-run`：只预览，不写入文件，不提交 Git
 - `--no-push`：写入并生成本地 commit，但不推送
 - `--debug`：输出更详细的扫描日志
-
-## 自动定时同步
-
-Windows 下可以创建每日定时任务：
-
-```powershell
-cd D:\Study\Code\leetcode-sync-dashboard
-powershell -ExecutionPolicy Bypass -File .\setup_daily_sync.ps1 -RepoRoot "D:\Study\Code\LeetCode" -OutputDir "AutoSync" -RunTime "23:30"
-```
-
-定时任务会执行最近提交同步，并限制单次同步数量，避免触发频繁限流。
-
-如果要让定时任务稳定运行，建议把 `LEETCODE_SESSION` 和 `CSRF_TOKEN` 设置为用户环境变量，而不是只在当前终端里临时设置。
+- `--reset-cursor`：重置全量历史扫描游标
 
 ## 输出目录
 
-默认同步到仓库根目录：
+默认同步到题解仓库根目录：
 
 ```text
 AutoSync/
@@ -224,57 +228,97 @@ AutoSync/
 .leetcode-sync-state.json
 ```
 
-这个文件用来避免重复同步同一条提交。如果删除它，工具会认为所有题目都没有同步过。
+它会记录：
 
-## 题解仓库要求
+- 已同步过的 submission id
+- 全量历史扫描游标
+- 最近同步时间
 
-目标题解目录需要是一个 Git 仓库。新建题解仓库可以这样做：
+删除这个文件后，工具会认为所有题目都没有同步过。
+
+## 诊断
+
+页面右侧“诊断”会检查：
+
+- Java 是否可用
+- Maven 是否可用
+- Git 是否可用
+- 题解仓库目录是否存在
+- 题解仓库是否是 Git 仓库
+- `origin` 是否配置
+- 同步脚本是否存在
+- 输出目录是否安全
+- Cookie 是否已配置
+- 是否存在 `.git/index.lock`
+
+遇到问题时，诊断项会给出对应修复建议。
+
+## 自动定时同步
+
+Windows 下可以创建每日定时任务：
 
 ```powershell
-mkdir D:\Study\Code\LeetCode
-cd D:\Study\Code\LeetCode
-git init
-git branch -M main
-git remote add origin https://github.com/your-name/your-repo.git
+cd D:\Study\Code\leetcode-sync-dashboard
+
+powershell -ExecutionPolicy Bypass -File .\setup_daily_sync.ps1 `
+  -RepoRoot "D:\Study\Code\LeetCode" `
+  -OutputDir "AutoSync" `
+  -RunTime "23:30"
 ```
 
-如果已经有 GitHub 仓库，直接 clone：
-
-```powershell
-git clone https://github.com/your-name/your-repo.git D:\Study\Code\LeetCode
-```
+定时任务建议只跑“最近提交”，避免历史全量触发频繁限流。
 
 ## 常见问题
 
+### 为什么全量历史会显示 419？
+
+这是 `leetcode.cn` 返回的账号已 AC 题目总数。全量模式需要知道历史题目列表，`--max-sync 30` 或 `--max-sync 50` 限制的是本批最多写入多少个新提交，不是账号总题数。
+
+现在工具已经支持全量扫描游标，下一批会从上次位置继续。
+
 ### leetcode.cn 提示超出访问限制
 
-leetcode.cn 对提交详情接口有限流。工具已经内置等待和重试，但全量历史仍建议使用分批同步：
+提交详情接口比较容易限流。工具内置了等待和重试，但全量历史仍建议分批执行：
 
 ```powershell
-java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30 --no-push
+java .\tools\LeetCodeCnSync.java --repo-root D:\Study\Code\LeetCode --output-dir AutoSync --all --max-sync 30
 ```
 
-### push 被 GitHub 拒绝
+如果连续被限流，等几分钟后再继续。
 
-如果远程分支比本地更新，工具会在 push 前自动执行：
+### GitHub 返回 502
+
+这通常是 GitHub 或本地网络临时异常。题解已经保存在本地并生成 commit 时，直接重试：
 
 ```powershell
-git pull --rebase --autostash origin main
+git push
 ```
-
-如果发生文件冲突，需要手动解决冲突后再 push。
 
 ### Git 出现 index.lock
 
-这通常是另一个 Git 进程还在运行，或者上一次 Git 操作异常退出。先关闭正在运行的同步任务，再确认没有 Git 进程后删除：
+先停止同步任务，并确认没有其他 Git 命令在运行。确认安全后删除：
 
 ```powershell
 Remove-Item -LiteralPath "D:\Study\Code\LeetCode\.git\index.lock"
 ```
 
-### 不想提交工具，只想同步题目
+### 当前分支没有 upstream
 
-可以只提交 `AutoSync/` 和 `.leetcode-sync-state.json`：
+执行一次：
+
+```powershell
+git push --set-upstream origin main
+```
+
+或者：
+
+```powershell
+git config --global push.autoSetupRemote true
+```
+
+### 不想提交工具，只想提交题解
+
+只提交题解目录和同步状态：
 
 ```powershell
 git add AutoSync .leetcode-sync-state.json
@@ -282,16 +326,6 @@ git commit -m "sync: update leetcode solutions"
 git push
 ```
 
-## 独立开源发布建议
-
-可以继续补充的能力：
-
-- 支持配置文件保存 Cookie 名称、仓库路径、同步目录
-- 支持多账号或多仓库
-- 支持同步统计图表
-- 支持打包成可执行 jar
-- 支持 Docker 或桌面启动脚本
-
 ## 安全提醒
 
-`LEETCODE_SESSION` 和 `CSRF_TOKEN` 等价于登录凭证。不要上传到公开仓库，不要截图公开展示完整值。如果怀疑泄露，退出 leetcode.cn 并重新登录刷新 Cookie。
+`LEETCODE_SESSION` 和 `CSRF_TOKEN` 等价于登录凭证。不要上传到公开仓库，不要截图公开展示完整值。如果怀疑泄露，退出 `leetcode.cn` 并重新登录刷新 Cookie。

@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeetCode Sync Console</title>
+    <title>LeetCode Sync Dashboard</title>
     <style>
         :root {
             color-scheme: light;
-            --bg: #f4f6f8;
+            --bg: #f4f7fb;
             --surface: #ffffff;
-            --surface-soft: #f8fafc;
+            --soft: #f8fafc;
             --text: #17202a;
-            --muted: #657386;
-            --line: #d9e0e8;
-            --primary: #1d4ed8;
-            --primary-weak: #dbeafe;
+            --muted: #64748b;
+            --line: #d8e0ea;
+            --primary: #1764e8;
+            --primary-soft: #e8f1ff;
             --green: #0f8a4b;
-            --green-weak: #dcfce7;
+            --green-soft: #e4f8ed;
             --amber: #a16207;
-            --amber-weak: #fef3c7;
+            --amber-soft: #fff6d7;
             --red: #b42318;
-            --red-weak: #fee2e2;
-            --blue: #0369a1;
-            --purple: #6d28d9;
-            --shadow: 0 18px 44px rgba(39, 55, 77, 0.10);
+            --red-soft: #ffe8e6;
+            --ink: #111827;
+            --shadow: 0 16px 40px rgba(30, 41, 59, .10);
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
@@ -34,10 +33,7 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background:
-                linear-gradient(135deg, rgba(29, 78, 216, .10), transparent 30%),
-                linear-gradient(315deg, rgba(15, 138, 75, .10), transparent 36%),
-                var(--bg);
+            background: var(--bg);
             color: var(--text);
         }
 
@@ -48,51 +44,34 @@
         }
 
         .app {
-            width: min(1180px, calc(100% - 32px));
+            width: min(1320px, calc(100% - 28px));
             margin: 0 auto;
-            padding: 28px 0 40px;
+            padding: 24px 0 36px;
         }
 
-        .shell {
-            display: grid;
-            grid-template-columns: 260px minmax(0, 1fr);
-            gap: 16px;
-        }
-
-        .sidebar,
-        .main-panel,
-        .panel,
-        .stat {
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-        }
-
-        .sidebar {
-            padding: 18px;
-            align-self: start;
-            position: sticky;
-            top: 20px;
-        }
-
-        .brand {
-            display: grid;
-            gap: 8px;
-            padding-bottom: 18px;
-            border-bottom: 1px solid var(--line);
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
             margin-bottom: 16px;
         }
 
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .brand-mark {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
             display: grid;
             place-items: center;
-            border-radius: 8px;
-            background: var(--primary);
+            background: var(--ink);
             color: #fff;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         h1,
@@ -108,7 +87,7 @@
         }
 
         h2 {
-            font-size: 18px;
+            font-size: 17px;
             letter-spacing: 0;
         }
 
@@ -125,113 +104,111 @@
             font-size: 13px;
         }
 
-        .repo {
+        .layout {
             display: grid;
+            grid-template-columns: 300px minmax(0, 1fr) 330px;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 10px;
         }
 
-        .repo-row {
+        .stats {
             display: grid;
-            gap: 4px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
         }
 
-        code,
-        pre {
-            font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
-        }
-
-        code {
-            overflow-wrap: anywhere;
-        }
-
-        .status-list {
-            display: grid;
-            gap: 8px;
-            margin-top: 16px;
-        }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 9px 10px;
-            border-radius: 8px;
-            background: var(--surface-soft);
+        .stat {
+            background: var(--surface);
             border: 1px solid var(--line);
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 24px;
-            padding: 2px 9px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .badge.ok {
-            color: var(--green);
-            background: var(--green-weak);
-        }
-
-        .badge.warn {
-            color: var(--amber);
-            background: var(--amber-weak);
-        }
-
-        .badge.err {
-            color: var(--red);
-            background: var(--red-weak);
-        }
-
-        .main-panel {
-            padding: 20px;
+            border-radius: 8px;
+            padding: 14px;
             display: grid;
-            gap: 16px;
+            gap: 6px;
         }
 
-        .hero {
+        .stat strong {
+            font-size: 25px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .field {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            align-items: start;
-            gap: 16px;
+            gap: 6px;
         }
 
-        .title-stack {
+        label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 650;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: var(--text);
+            background: #fff;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            min-height: 0;
+        }
+
+        .two {
             display: grid;
-            gap: 8px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
-        .actions {
+        .check {
             display: flex;
+            align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+            color: var(--text);
+            font-size: 14px;
         }
 
         .btn {
-            border: 1px solid var(--line);
-            background: var(--surface);
-            color: var(--text);
-            border-radius: 8px;
             min-height: 38px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--text);
             padding: 8px 12px;
             cursor: pointer;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 7px;
-            font-weight: 600;
-            transition: transform .12s ease, border-color .12s ease, background .12s ease;
         }
 
         .btn:hover {
-            transform: translateY(-1px);
-            border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
+            border-color: var(--primary);
         }
 
         .btn.primary {
@@ -240,141 +217,111 @@
             border-color: var(--primary);
         }
 
-        .btn.ghost {
-            background: var(--surface-soft);
+        .btn.soft {
+            background: var(--soft);
         }
 
         .btn:disabled {
+            opacity: .62;
             cursor: wait;
-            opacity: .68;
-            transform: none;
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .stat {
-            padding: 14px;
-            display: grid;
-            gap: 8px;
-            box-shadow: none;
-        }
-
-        .stat-value {
-            font-size: 26px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr);
-            gap: 16px;
-        }
-
-        .panel {
-            padding: 16px;
-            display: grid;
-            gap: 14px;
-            box-shadow: none;
-        }
-
-        .field-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        label {
-            display: grid;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        select,
-        input[type="number"] {
-            width: 100%;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            min-height: 40px;
-            padding: 8px 10px;
-            background: var(--surface);
-            color: var(--text);
-        }
-
-        .check {
+        .actions {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 8px;
-            color: var(--text);
-            font-weight: 500;
         }
 
-        .segment {
+        .modes {
             display: grid;
             gap: 8px;
         }
 
-        .segment button {
-            width: 100%;
+        .modes .btn {
             justify-content: flex-start;
         }
 
-        .segment button[aria-pressed="true"] {
-            background: var(--primary-weak);
+        .modes .btn[aria-pressed="true"] {
             color: var(--primary);
-            border-color: color-mix(in srgb, var(--primary) 45%, var(--line));
+            border-color: var(--primary);
+            background: var(--primary-soft);
         }
 
-        .command-box {
-            display: grid;
-            gap: 10px;
-        }
-
-        .command-head {
-            display: flex;
-            justify-content: space-between;
+        .badge {
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: center;
+            min-height: 24px;
+            border-radius: 999px;
+            padding: 2px 9px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .ok {
+            color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .warn {
+            color: var(--amber);
+            background: var(--amber-soft);
+        }
+
+        .err {
+            color: var(--red);
+            background: var(--red-soft);
+        }
+
+        .repo-row,
+        .diag-item {
+            display: grid;
+            gap: 6px;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--soft);
+            border: 1px solid var(--line);
+        }
+
+        .repo-row code,
+        .diag-item code {
+            overflow-wrap: anywhere;
+        }
+
+        code,
+        pre {
+            font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
         }
 
         pre {
             margin: 0;
-            min-height: 76px;
-            max-height: 360px;
+            min-height: 84px;
+            max-height: 480px;
             overflow: auto;
             white-space: pre-wrap;
             overflow-wrap: anywhere;
             padding: 13px;
             color: #dbeafe;
-            background: #111827;
+            background: var(--ink);
             border-radius: 8px;
             border: 1px solid #253047;
             font-size: 13px;
             line-height: 1.55;
         }
 
-        .flow {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 8px;
-        }
-
-        .step {
+        .diag-list {
             display: grid;
             gap: 8px;
-            padding: 12px 0 0;
-            border-top: 3px solid var(--line);
+            max-height: 560px;
+            overflow: auto;
         }
 
-        .step.on {
-            border-top-color: var(--primary);
+        .diag-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
 
         .toast {
@@ -386,8 +333,8 @@
             display: none;
             align-items: center;
             gap: 8px;
-            color: var(--blue);
-            font-weight: 600;
+            color: var(--primary);
+            font-weight: 800;
         }
 
         .running.show {
@@ -397,7 +344,7 @@
         .spinner {
             width: 15px;
             height: 15px;
-            border: 2px solid var(--primary-weak);
+            border: 2px solid var(--primary-soft);
             border-top-color: var(--primary);
             border-radius: 999px;
             animation: spin .8s linear infinite;
@@ -409,19 +356,9 @@
             }
         }
 
-        @media (max-width: 920px) {
-            .shell,
-            .grid,
-            .hero {
+        @media (max-width: 1120px) {
+            .layout {
                 grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: static;
-            }
-
-            .actions {
-                justify-content: flex-start;
             }
 
             .stats {
@@ -429,20 +366,20 @@
             }
         }
 
-        @media (max-width: 560px) {
+        @media (max-width: 620px) {
             .app {
-                width: min(100% - 20px, 1180px);
+                width: min(100% - 18px, 1320px);
                 padding-top: 12px;
             }
 
-            .main-panel,
-            .sidebar {
-                padding: 14px;
+            .topbar,
+            .section-head {
+                align-items: flex-start;
+                flex-direction: column;
             }
 
             .stats,
-            .field-grid,
-            .flow {
+            .two {
                 grid-template-columns: 1fr;
             }
         }
@@ -450,155 +387,171 @@
 </head>
 <body>
 <main class="app">
-    <div class="shell">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-mark">LC</div>
-                <div>
-                    <h1>Sync Console</h1>
-                    <p class="muted small">本地 Spring Boot 控制台</p>
-                </div>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark">LC</div>
+            <div>
+                <h1>LeetCode Sync Dashboard</h1>
+                <p class="muted small">leetcode.cn 题解同步控制台</p>
             </div>
+        </div>
+        <div class="actions">
+            <button class="btn soft" id="refreshBtn" type="button">刷新状态</button>
+            <button class="btn soft" id="diagBtn" type="button">运行诊断</button>
+            <button class="btn" id="copyBtn" type="button">复制命令</button>
+            <button class="btn" id="cancelBtn" type="button" disabled>停止任务</button>
+            <button class="btn primary" id="runBtn" type="button">运行同步</button>
+        </div>
+    </header>
 
-            <div class="repo">
+    <div class="stats">
+        <div class="stat">
+            <span class="muted small" id="outputDirLabel">AutoSync 题目</span>
+            <strong id="problemCount">0</strong>
+        </div>
+        <div class="stat">
+            <span class="muted small">已记录提交</span>
+            <strong id="submissionCount">0</strong>
+        </div>
+        <div class="stat">
+            <span class="muted small">工作区变更</span>
+            <strong id="dirtyCount">0</strong>
+        </div>
+        <div class="stat">
+            <span class="muted small">诊断</span>
+            <strong id="diagCount">-</strong>
+        </div>
+    </div>
+
+    <div class="layout" style="margin-top: 14px;">
+        <aside class="stack">
+            <section class="panel stack">
+                <div class="section-head">
+                    <h2>状态</h2>
+                    <span class="badge warn" id="dirtyStatus">检查中</span>
+                </div>
                 <div class="repo-row">
-                    <span class="muted small">仓库</span>
+                    <span class="muted small">题解仓库</span>
                     <code id="repoRoot">读取中...</code>
                 </div>
                 <div class="repo-row">
                     <span class="muted small">分支</span>
                     <code id="branch">-</code>
                 </div>
-            </div>
+                <div class="two">
+                    <div class="repo-row">
+                        <span class="muted small">脚本</span>
+                        <span class="badge warn" id="scriptStatus">检查中</span>
+                    </div>
+                    <div class="repo-row">
+                        <span class="muted small">Cookie</span>
+                        <span class="badge warn" id="cookieStatus">检查中</span>
+                    </div>
+                </div>
+            </section>
 
-            <div class="status-list">
-                <div class="status-pill">
-                    <span>同步脚本</span>
-                    <span class="badge warn" id="scriptStatus">检查中</span>
+            <section class="panel stack">
+                <div class="section-head">
+                    <h2>本地配置</h2>
+                    <button class="btn soft" id="saveConfigBtn" type="button">保存</button>
                 </div>
-                <div class="status-pill">
-                    <span>Session</span>
-                    <span class="badge warn" id="sessionStatus">检查中</span>
+                <div class="field">
+                    <label for="configRepoRoot">题解仓库路径</label>
+                    <input id="configRepoRoot" autocomplete="off">
                 </div>
-                <div class="status-pill">
-                    <span>CSRF</span>
-                    <span class="badge warn" id="csrfStatus">检查中</span>
+                <div class="field">
+                    <label for="configOutputDir">输出目录</label>
+                    <input id="configOutputDir" autocomplete="off" placeholder="AutoSync">
                 </div>
-                <div class="status-pill">
-                    <span>工作区</span>
-                    <span class="badge warn" id="dirtyStatus">检查中</span>
+                <div class="field">
+                    <label for="configSyncScript">同步脚本路径</label>
+                    <input id="configSyncScript" autocomplete="off" placeholder="tools/LeetCodeCnSync.java">
                 </div>
-            </div>
+                <div class="field">
+                    <label for="configSession">LEETCODE_SESSION</label>
+                    <input id="configSession" autocomplete="off" placeholder="留空则使用环境变量">
+                </div>
+                <div class="field">
+                    <label for="configCsrf">CSRF_TOKEN / csrftoken</label>
+                    <input id="configCsrf" autocomplete="off" placeholder="留空则使用环境变量">
+                </div>
+                <p class="muted small" id="configPath">配置文件：-</p>
+                <p class="toast small" id="configToast"></p>
+            </section>
         </aside>
 
-        <section class="main-panel">
-            <div class="hero">
-                <div class="title-stack">
-                    <span class="badge ok" id="modeBadge">预览模式</span>
-                    <h1>LeetCode 自动同步</h1>
-                    <p class="muted">选择同步范围和执行模式，后端会在本机仓库里运行 Java 同步脚本。</p>
-                </div>
-                <div class="actions">
-                    <button class="btn ghost" id="refreshBtn" type="button">刷新状态</button>
-                    <button class="btn" id="copyBtn" type="button">复制命令</button>
-                    <button class="btn" id="cancelBtn" type="button" disabled>停止任务</button>
-                    <button class="btn primary" id="runBtn" type="button">运行同步</button>
-                </div>
-            </div>
-
-            <div class="stats">
-                <div class="stat">
-                    <span class="muted small" id="outputDirLabel">AutoSync 题目</span>
-                    <span class="stat-value" id="problemCount">0</span>
-                </div>
-                <div class="stat">
-                    <span class="muted small">已记录提交</span>
-                    <span class="stat-value" id="submissionCount">0</span>
-                </div>
-                <div class="stat">
-                    <span class="muted small">变更文件</span>
-                    <span class="stat-value" id="dirtyCount">0</span>
-                </div>
-                <div class="stat">
-                    <span class="muted small">端口</span>
-                    <span class="stat-value">8848</span>
-                </div>
-            </div>
-
-            <div class="grid">
-                <section class="panel">
+        <section class="stack">
+            <section class="panel stack">
+                <div class="section-head">
                     <h2>运行配置</h2>
-                    <div class="field-grid">
-                        <label>
-                            同步范围
-                            <select id="scope">
-                                <option value="recent">最近提交</option>
-                                <option value="all">全量历史</option>
-                            </select>
-                        </label>
-                        <label>
-                            最近数量
-                            <input id="limit" type="number" min="1" max="5000" value="20">
-                        </label>
-                        <label>
-                            本批最多同步
-                            <input id="maxSync" type="number" min="0" max="5000" value="30">
-                        </label>
+                    <span class="badge ok" id="modeBadge">预览模式</span>
+                </div>
+                <div class="two">
+                    <div class="field">
+                        <label for="scope">同步范围</label>
+                        <select id="scope">
+                            <option value="recent">最近提交</option>
+                            <option value="all">全量历史</option>
+                        </select>
                     </div>
-
-                    <div class="segment" role="group" aria-label="执行模式">
-                        <button class="btn" type="button" data-mode="preview" aria-pressed="true">只预览，不写入</button>
-                        <button class="btn" type="button" data-mode="local" aria-pressed="false">写入并本地提交</button>
-                        <button class="btn" type="button" data-mode="push" aria-pressed="false">写入、提交并推送</button>
+                    <div class="field">
+                        <label for="limit">最近数量</label>
+                        <input id="limit" type="number" min="1" max="5000" value="20">
                     </div>
-
-                    <label class="check">
+                    <div class="field">
+                        <label for="maxSync">本批最多同步</label>
+                        <input id="maxSync" type="number" min="0" max="5000" value="30">
+                    </div>
+                    <label class="check" style="align-self: end;">
                         <input id="debug" type="checkbox">
                         显示调试输出
                     </label>
+                    <label class="check">
+                        <input id="resetCursor" type="checkbox">
+                        重置全量扫描游标
+                    </label>
+                </div>
 
-                    <div class="flow">
-                        <div class="step on">
-                            <strong>1. 登录</strong>
-                            <span class="muted small">读取环境变量</span>
-                        </div>
-                        <div class="step on">
-                            <strong>2. 题目</strong>
-                            <span class="muted small">获取 AC 列表</span>
-                        </div>
-                        <div class="step on">
-                            <strong>3. 代码</strong>
-                            <span class="muted small">抓取提交详情</span>
-                        </div>
-                        <div class="step" id="writeStep">
-                            <strong>4. 写入</strong>
-                            <span class="muted small" id="writeText">预览路径</span>
-                        </div>
-                        <div class="step" id="pushStep">
-                            <strong>5. Git</strong>
-                            <span class="muted small" id="pushText">等待确认</span>
-                        </div>
-                    </div>
-                </section>
+                <div class="modes" role="group" aria-label="执行模式">
+                    <button class="btn" type="button" data-mode="preview" aria-pressed="true">只预览，不写入</button>
+                    <button class="btn" type="button" data-mode="local" aria-pressed="false">写入并本地提交</button>
+                    <button class="btn" type="button" data-mode="push" aria-pressed="false">写入、提交并推送</button>
+                </div>
+            </section>
 
-                <section class="panel command-box">
-                    <div class="command-head">
-                        <h2>命令</h2>
-                        <span class="running" id="running"><span class="spinner"></span>运行中</span>
-                    </div>
-                    <pre><code id="commandText">生成中...</code></pre>
-                    <div class="toast small" id="toast" aria-live="polite"></div>
-                </section>
-            </div>
+            <section class="panel stack">
+                <div class="section-head">
+                    <h2>命令</h2>
+                    <span class="running" id="running"><span class="spinner"></span>运行中</span>
+                </div>
+                <pre><code id="commandText">生成中...</code></pre>
+                <p class="toast small" id="toast"></p>
+            </section>
 
-            <section class="panel command-box">
-                <div class="command-head">
+            <section class="panel stack">
+                <div class="section-head">
                     <h2>运行日志</h2>
                     <span class="muted small" id="lastChecked">尚未运行</span>
                 </div>
-                <pre><code id="logText">点击“运行同步”后，这里会显示 LeetCodeCnSync.java 的输出。</code></pre>
+                <pre><code id="logText">点击“运行同步”后，这里会显示实时日志。</code></pre>
             </section>
         </section>
+
+        <aside class="panel stack">
+            <div class="section-head">
+                <h2>诊断</h2>
+                <span class="badge warn" id="diagBadge">未运行</span>
+            </div>
+            <div class="diag-list" id="diagList">
+                <div class="diag-item">
+                    <div class="diag-title">
+                        <strong>等待检查</strong>
+                        <span class="badge warn">pending</span>
+                    </div>
+                    <p class="muted small">点击“运行诊断”查看环境、仓库、Cookie 和 Git 状态。</p>
+                </div>
+            </div>
+        </aside>
     </div>
 </main>
 
@@ -613,34 +566,42 @@
     };
 
     const el = {
-        repoRoot: document.getElementById('repoRoot'),
-        branch: document.getElementById('branch'),
-        scriptStatus: document.getElementById('scriptStatus'),
-        sessionStatus: document.getElementById('sessionStatus'),
-        csrfStatus: document.getElementById('csrfStatus'),
-        dirtyStatus: document.getElementById('dirtyStatus'),
-        modeBadge: document.getElementById('modeBadge'),
-        problemCount: document.getElementById('problemCount'),
-        submissionCount: document.getElementById('submissionCount'),
-        dirtyCount: document.getElementById('dirtyCount'),
-        outputDirLabel: document.getElementById('outputDirLabel'),
         refreshBtn: document.getElementById('refreshBtn'),
+        diagBtn: document.getElementById('diagBtn'),
         copyBtn: document.getElementById('copyBtn'),
         cancelBtn: document.getElementById('cancelBtn'),
         runBtn: document.getElementById('runBtn'),
+        saveConfigBtn: document.getElementById('saveConfigBtn'),
+        repoRoot: document.getElementById('repoRoot'),
+        branch: document.getElementById('branch'),
+        scriptStatus: document.getElementById('scriptStatus'),
+        cookieStatus: document.getElementById('cookieStatus'),
+        dirtyStatus: document.getElementById('dirtyStatus'),
+        outputDirLabel: document.getElementById('outputDirLabel'),
+        problemCount: document.getElementById('problemCount'),
+        submissionCount: document.getElementById('submissionCount'),
+        dirtyCount: document.getElementById('dirtyCount'),
+        diagCount: document.getElementById('diagCount'),
+        diagBadge: document.getElementById('diagBadge'),
+        diagList: document.getElementById('diagList'),
+        modeBadge: document.getElementById('modeBadge'),
         scope: document.getElementById('scope'),
         limit: document.getElementById('limit'),
         maxSync: document.getElementById('maxSync'),
         debug: document.getElementById('debug'),
-        writeStep: document.getElementById('writeStep'),
-        pushStep: document.getElementById('pushStep'),
-        writeText: document.getElementById('writeText'),
-        pushText: document.getElementById('pushText'),
+        resetCursor: document.getElementById('resetCursor'),
         commandText: document.getElementById('commandText'),
         toast: document.getElementById('toast'),
         running: document.getElementById('running'),
         logText: document.getElementById('logText'),
-        lastChecked: document.getElementById('lastChecked')
+        lastChecked: document.getElementById('lastChecked'),
+        configRepoRoot: document.getElementById('configRepoRoot'),
+        configOutputDir: document.getElementById('configOutputDir'),
+        configSyncScript: document.getElementById('configSyncScript'),
+        configSession: document.getElementById('configSession'),
+        configCsrf: document.getElementById('configCsrf'),
+        configPath: document.getElementById('configPath'),
+        configToast: document.getElementById('configToast')
     };
 
     function requestBody() {
@@ -649,27 +610,54 @@
             limit: Number(el.limit.value || 20),
             maxSync: Number(el.maxSync.value || 0),
             mode: state.mode,
-            debug: el.debug.checked
+            debug: el.debug.checked,
+            resetCursor: el.resetCursor.checked
         };
     }
 
-    function setBadge(node, ok, okText, failText) {
-        node.textContent = ok ? okText : failText;
-        node.className = 'badge ' + (ok ? 'ok' : 'err');
+    function setBadge(node, severity, text) {
+        node.textContent = text;
+        node.className = 'badge ' + (severity === 'ok' ? 'ok' : severity === 'warn' ? 'warn' : 'err');
     }
 
-    function updateMode(nextMode) {
-        state.mode = nextMode;
-        document.querySelectorAll('[data-mode]').forEach(button => {
-            const active = button.dataset.mode === nextMode;
-            button.setAttribute('aria-pressed', String(active));
+    async function refreshAll() {
+        await Promise.all([refreshConfig(), refreshStatus(), refreshCommand()]);
+    }
+
+    async function refreshConfig() {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        el.configRepoRoot.value = data.repoRoot || '';
+        el.configOutputDir.value = data.outputDir || 'AutoSync';
+        el.configSyncScript.value = data.syncScript || 'tools/LeetCodeCnSync.java';
+        el.configSession.placeholder = data.leetcodeSessionPresent ? data.leetcodeSessionMask : '留空则使用环境变量';
+        el.configCsrf.placeholder = data.csrfTokenPresent ? data.csrfTokenMask : '留空则使用环境变量';
+        el.configPath.textContent = '配置文件：' + data.configPath;
+    }
+
+    async function saveConfig() {
+        el.configToast.textContent = '保存中...';
+        const body = {
+            repoRoot: el.configRepoRoot.value.trim(),
+            outputDir: el.configOutputDir.value.trim(),
+            syncScript: el.configSyncScript.value.trim(),
+            leetcodeSession: el.configSession.value.trim(),
+            csrfToken: el.configCsrf.value.trim()
+        };
+        const response = await fetch('/api/config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
         });
-        el.modeBadge.textContent = nextMode === 'preview' ? '预览模式' : nextMode === 'local' ? '本地提交模式' : '自动推送模式';
-        el.writeStep.classList.toggle('on', nextMode !== 'preview');
-        el.pushStep.classList.toggle('on', nextMode === 'push');
-        el.writeText.textContent = nextMode === 'preview' ? '预览路径' : '写入 AutoSync';
-        el.pushText.textContent = nextMode === 'push' ? 'push 到 GitHub' : nextMode === 'local' ? '只 commit' : '等待确认';
-        refreshCommand();
+        if (!response.ok) {
+            el.configToast.textContent = '保存失败';
+            return;
+        }
+        el.configSession.value = '';
+        el.configCsrf.value = '';
+        el.configToast.textContent = '已保存';
+        await refreshAll();
+        await runDiagnostics();
     }
 
     async function refreshStatus() {
@@ -682,12 +670,35 @@
         el.problemCount.textContent = data.autoSyncProblemCount;
         el.submissionCount.textContent = data.syncedSubmissionCount;
         el.dirtyCount.textContent = data.dirtyFileCount;
-        setBadge(el.scriptStatus, data.syncScriptFound, '已找到', '缺失');
-        setBadge(el.sessionStatus, data.leetcodeSessionPresent, '已设置', '缺失');
-        setBadge(el.csrfStatus, data.csrfTokenPresent, '已设置', '缺失');
-        el.dirtyStatus.textContent = data.dirtyFileCount === 0 ? '干净' : data.dirtyFileCount + ' 个';
-        el.dirtyStatus.className = 'badge ' + (data.dirtyFileCount === 0 ? 'ok' : 'warn');
+        setBadge(el.scriptStatus, data.syncScriptFound ? 'ok' : 'err', data.syncScriptFound ? '已找到' : '缺失');
+        setBadge(el.cookieStatus, data.leetcodeSessionPresent && data.csrfTokenPresent ? 'ok' : 'err',
+            data.leetcodeSessionPresent && data.csrfTokenPresent ? '已配置' : '缺失');
+        setBadge(el.dirtyStatus, data.dirtyFileCount === 0 ? 'ok' : 'warn',
+            data.dirtyFileCount === 0 ? '干净' : data.dirtyFileCount + ' 个变更');
         el.lastChecked.textContent = '状态检查：' + new Date(data.checkedAt).toLocaleString();
+    }
+
+    async function runDiagnostics() {
+        setBadge(el.diagBadge, 'warn', '检查中');
+        const response = await fetch('/api/diagnostics');
+        const data = await response.json();
+        el.diagCount.textContent = data.errors + '/' + data.warnings;
+        setBadge(el.diagBadge, data.ok ? 'ok' : 'err', data.ok ? '通过' : data.errors + ' 个问题');
+        el.diagList.innerHTML = '';
+        data.items.forEach(item => {
+            const node = document.createElement('div');
+            node.className = 'diag-item';
+            const badgeClass = item.severity === 'ok' ? 'ok' : item.severity === 'warn' ? 'warn' : 'err';
+            node.innerHTML = `
+                <div class="diag-title">
+                    <strong>${escapeHtml(item.label)}</strong>
+                    <span class="badge ${badgeClass}">${escapeHtml(item.severity)}</span>
+                </div>
+                <code>${escapeHtml(item.detail || '-')}</code>
+                <p class="muted small">${escapeHtml(item.ok ? '无需处理' : item.fix)}</p>
+            `;
+            el.diagList.appendChild(node);
+        });
     }
 
     async function refreshCommand() {
@@ -702,6 +713,16 @@
         el.commandText.textContent = data.command;
     }
 
+    function updateMode(nextMode) {
+        state.mode = nextMode;
+        document.querySelectorAll('[data-mode]').forEach(button => {
+            button.setAttribute('aria-pressed', String(button.dataset.mode === nextMode));
+        });
+        const names = {preview: '预览模式', local: '本地提交', push: '自动推送'};
+        el.modeBadge.textContent = names[nextMode] || nextMode;
+        refreshCommand();
+    }
+
     async function runSync() {
         setRunning(true);
         stopPolling();
@@ -713,6 +734,9 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(requestBody())
             });
+            if (!response.ok) {
+                throw new Error('启动失败：' + response.status);
+            }
             const data = await response.json();
             state.jobId = data.jobId;
             renderJob(data);
@@ -752,6 +776,7 @@
                 stopPolling();
                 state.jobId = null;
                 setRunning(false);
+                el.resetCursor.checked = false;
                 await refreshStatus();
                 await askForNextBatch(data);
             }
@@ -786,26 +811,21 @@
             return;
         }
         state.promptedJobs.add(data.jobId);
-        const maxSync = Number(el.maxSync.value || 0);
-        const ok = window.confirm(
-            '本批同步已完成，并且已经按当前执行模式处理 Git。\n\n'
-            + '是否继续下一批？\n\n'
-            + '当前每批最多同步：' + maxSync + ' 个'
-        );
+        const ok = window.confirm('本批同步已经完成。是否继续下一批？');
         if (ok) {
             el.toast.textContent = '继续同步下一批...';
             await runSync();
         } else {
-            el.toast.textContent = '已停止在当前批次';
+            el.toast.textContent = '已停在当前批次';
         }
     }
 
     function shouldAskForNextBatch(data) {
-        if (!data || !data.success || state.promptedJobs.has(data.jobId)) {
-            return false;
-        }
         const maxSync = Number(el.maxSync.value || 0);
-        return el.scope.value === 'all'
+        return data
+            && data.success
+            && !state.promptedJobs.has(data.jobId)
+            && el.scope.value === 'all'
             && state.mode !== 'preview'
             && maxSync > 0
             && (data.stdout || '').includes('Reached --max-sync');
@@ -816,9 +836,7 @@
             return;
         }
         try {
-            const response = await fetch('/api/sync/' + encodeURIComponent(state.jobId) + '/cancel', {
-                method: 'POST'
-            });
+            const response = await fetch('/api/sync/' + encodeURIComponent(state.jobId) + '/cancel', {method: 'POST'});
             const data = await response.json();
             renderJob(data);
         } catch (error) {
@@ -837,18 +855,34 @@
         el.toast.textContent = '命令已复制';
     }
 
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[char]);
+    }
+
     document.querySelectorAll('[data-mode]').forEach(button => {
         button.addEventListener('click', () => updateMode(button.dataset.mode));
     });
-    [el.scope, el.limit, el.maxSync, el.debug].forEach(control => control.addEventListener('input', refreshCommand));
-    el.refreshBtn.addEventListener('click', refreshStatus);
+    [el.scope, el.limit, el.maxSync, el.debug, el.resetCursor].forEach(control => {
+        control.addEventListener('input', refreshCommand);
+    });
+    el.refreshBtn.addEventListener('click', refreshAll);
+    el.diagBtn.addEventListener('click', runDiagnostics);
     el.copyBtn.addEventListener('click', copyCommand);
     el.cancelBtn.addEventListener('click', cancelSync);
     el.runBtn.addEventListener('click', runSync);
+    el.saveConfigBtn.addEventListener('click', saveConfig);
 
-    Promise.all([refreshStatus(), refreshCommand()]).catch(error => {
-        el.logText.textContent = '初始化失败：' + error;
-    });
+    refreshAll()
+        .then(runDiagnostics)
+        .catch(error => {
+            el.logText.textContent = '初始化失败：' + error;
+        });
 </script>
 </body>
 </html>

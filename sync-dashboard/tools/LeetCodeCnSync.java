@@ -117,6 +117,11 @@ public class LeetCodeCnSync {
         Path root = options.repoRoot == null ? repoRoot() : Path.of(options.repoRoot).toAbsolutePath().normalize();
         String outputDir = normalizeOutputDir(options.outputDir);
         SyncState state = SyncState.load(root.resolve(STATE_FILE));
+        if (options.resetCursor) {
+            state.fullScanCursor = 0;
+            state.save(root.resolve(STATE_FILE));
+            System.out.println("Full scan cursor has been reset.");
+        }
 
         Map<String, Object> userStatus = fetchUserStatus(session, csrfToken);
         if (options.debug) {
@@ -128,7 +133,8 @@ public class LeetCodeCnSync {
             System.exit(2);
         }
 
-        List<Map<String, Object>> submissions = fetchSubmissions(session, csrfToken, options.all, options.limit, options.debug);
+        SubmissionBatch batch = fetchSubmissions(session, csrfToken, options, state);
+        List<Map<String, Object>> submissions = batch.submissions();
         if (options.debug) {
             System.out.println("Fetched submissions: " + submissions.size());
             for (int i = 0; i < Math.min(submissions.size(), 20); i++) {
@@ -193,7 +199,20 @@ public class LeetCodeCnSync {
             seenProblemLang.add(problemLang);
         }
 
+        if (options.all && !batch.complete() && options.maxSync > 0) {
+            System.out.println("Reached --max-sync " + options.maxSync + "; stop this batch and run again to continue.");
+        }
         if (!options.dryRun) {
+            if (options.all) {
+                state.fullScanCursor = batch.complete() ? 0 : batch.nextCursor();
+                state.fullScanTotal = batch.acceptedTotal();
+                state.fullScanUpdatedAt = Instant.now().toString();
+                if (batch.complete()) {
+                    System.out.println("Full scan reached the end; cursor reset to the beginning for future catch-up runs.");
+                } else {
+                    System.out.println("Full scan cursor saved at " + state.fullScanCursor + "/" + state.fullScanTotal + ".");
+                }
+            }
             state.save(root.resolve(STATE_FILE));
         }
         System.out.println("Synced: " + syncedCount + "; skipped: " + skippedCount + "; accepted scanned: " + submissions.size());
@@ -259,15 +278,16 @@ public class LeetCodeCnSync {
         }
     }
 
-    private static List<Map<String, Object>> fetchSubmissions(
+    private static SubmissionBatch fetchSubmissions(
             String session,
             String csrfToken,
-            boolean fetchAll,
-            int limit,
-            boolean debug
+            Options options,
+            SyncState state
     ) throws IOException {
         List<Map<String, Object>> problems = fetchAcceptedProblems(session, csrfToken);
-        if (debug) {
+        boolean fetchAll = options.all;
+        int limit = options.limit;
+        if (options.debug) {
             System.out.println("Accepted problems: " + problems.size());
         }
         if (!fetchAll && problems.size() > limit) {
@@ -277,7 +297,20 @@ public class LeetCodeCnSync {
         List<Map<String, Object>> submissions = new ArrayList<>();
         int perProblemLimit = fetchAll ? 12 : 5;
         int processedProblems = 0;
-        for (Map<String, Object> problem : problems) {
+        int startIndex = 0;
+        if (fetchAll) {
+            startIndex = Math.min(Math.max(state.fullScanCursor, 0), problems.size());
+            if (startIndex >= problems.size() && !problems.isEmpty()) {
+                System.out.println("Full scan cursor was already at the end; restarting from the beginning.");
+                startIndex = 0;
+            }
+            if (startIndex > 0) {
+                System.out.println("Resuming full scan from accepted problem " + (startIndex + 1) + "/" + problems.size() + ".");
+            }
+        }
+
+        for (int i = startIndex; i < problems.size(); i++) {
+            Map<String, Object> problem = problems.get(i);
             String slug = value(problem.get("slug"));
             if (isBlank(slug)) {
                 continue;
@@ -289,24 +322,32 @@ public class LeetCodeCnSync {
                 item.put("problemTitle", problem.get("title"));
             }
             List<Map<String, Object>> accepted = latestAcceptedByLanguage(page);
-            if (debug) {
+            if (options.debug) {
                 System.out.println("  " + slug + ": submissions=" + page.size() + " accepted=" + accepted.size());
             }
-            submissions.addAll(accepted);
+            for (Map<String, Object> item : accepted) {
+                if (fetchAll && options.maxSync > 0 && submissions.size() >= options.maxSync) {
+                    return new SubmissionBatch(submissions, problems.size(), processedProblems, i, false);
+                }
+                submissions.add(item);
+            }
             processedProblems++;
-            if (!debug && fetchAll && processedProblems % 25 == 0) {
-                System.out.println("Scanned accepted problems: " + processedProblems + "/" + problems.size());
+            if (!options.debug && fetchAll && processedProblems % 25 == 0) {
+                System.out.println("Scanned accepted problems: " + (i + 1) + "/" + problems.size());
             }
             pauseBetweenRequests();
             if (!fetchAll && submissions.size() >= limit) {
                 break;
             }
+            if (fetchAll && options.maxSync > 0 && submissions.size() >= options.maxSync) {
+                return new SubmissionBatch(submissions, problems.size(), processedProblems, i + 1, false);
+            }
         }
 
         if (!fetchAll && submissions.size() > limit) {
-            return submissions.subList(0, limit);
+            submissions = submissions.subList(0, limit);
         }
-        return submissions;
+        return new SubmissionBatch(submissions, problems.size(), processedProblems, 0, true);
     }
 
     private static List<Map<String, Object>> latestAcceptedByLanguage(List<Map<String, Object>> submissions) {
@@ -763,6 +804,17 @@ public class LeetCodeCnSync {
         return value == null || value.trim().isEmpty();
     }
 
+    private static int numberAsInt(Object value, int fallback) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        try {
+            return isBlank(value(value)) ? fallback : Integer.parseInt(value(value));
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private static Map<String, Object> asMap(Object object) {
         if (object instanceof Map<?, ?> map) {
@@ -779,6 +831,15 @@ public class LeetCodeCnSync {
         return List.of();
     }
 
+    private record SubmissionBatch(
+            List<Map<String, Object>> submissions,
+            int acceptedTotal,
+            int scannedCount,
+            int nextCursor,
+            boolean complete
+    ) {
+    }
+
     private record ProcessResult(int exitCode, String stdout, String stderr) {
     }
 
@@ -791,6 +852,7 @@ public class LeetCodeCnSync {
         boolean noPush;
         boolean dryRun;
         boolean debug;
+        boolean resetCursor;
         boolean help;
 
         static Options parse(String[] args) {
@@ -802,6 +864,7 @@ public class LeetCodeCnSync {
                     case "--no-push" -> options.noPush = true;
                     case "--dry-run" -> options.dryRun = true;
                     case "--debug" -> options.debug = true;
+                    case "--reset-cursor" -> options.resetCursor = true;
                     case "-h", "--help" -> options.help = true;
                     case "--limit" -> {
                         if (i + 1 >= args.length) {
@@ -847,6 +910,7 @@ public class LeetCodeCnSync {
                       --no-push      Commit locally but do not push.
                       --dry-run      Fetch and show what would be written.
                       --debug        Print scanned submission statuses.
+                      --reset-cursor Restart the next --all scan from the first accepted problem.
                       -h, --help     Show this help.
                     """);
         }
@@ -854,6 +918,9 @@ public class LeetCodeCnSync {
 
     private static class SyncState {
         final Set<String> syncedSubmissionIds = new LinkedHashSet<>();
+        int fullScanCursor;
+        int fullScanTotal;
+        String fullScanUpdatedAt = "";
 
         static SyncState load(Path path) throws IOException {
             SyncState state = new SyncState();
@@ -864,6 +931,9 @@ public class LeetCodeCnSync {
             for (Object id : asList(parsed.get("synced_submission_ids"))) {
                 state.syncedSubmissionIds.add(value(id));
             }
+            state.fullScanCursor = numberAsInt(parsed.get("full_scan_cursor"), 0);
+            state.fullScanTotal = numberAsInt(parsed.get("full_scan_total"), 0);
+            state.fullScanUpdatedAt = value(parsed.get("full_scan_updated_at"));
             return state;
         }
 
@@ -872,6 +942,9 @@ public class LeetCodeCnSync {
             Collections.sort(ids);
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("synced_submission_ids", ids);
+            data.put("full_scan_cursor", fullScanCursor);
+            data.put("full_scan_total", fullScanTotal);
+            data.put("full_scan_updated_at", fullScanUpdatedAt);
             data.put("latest_sync_at", Instant.now().toString());
             Files.writeString(path, Json.stringify(data) + "\n", StandardCharsets.UTF_8);
         }
