@@ -12,7 +12,7 @@
 ├── Commit/          # 早期从力扣导出或手动提交的题解
 ├── Java/            # 在 IDEA 中编写的 Java 练习代码
 ├── Cpp/             # 在 CLion / Visual Studio 中编写的 C/C++ 练习代码
-└── sync-dashboard/  # leetcode.cn 可视化同步工具
+
 ```
 
 ## 语言
@@ -43,37 +43,6 @@ AutoSync/
 - `solution.xxx`：对应语言的 AC 代码
 - `README.md`：题目编号、语言、提交时间、题目链接、提交链接
 
-## 同步工具
-
-本仓库包含一个本地可视化同步工具，用于把 leetcode.cn 的 AC 提交同步到 `AutoSync/`，并自动提交到 GitHub。
-
-工具位置：
-
-```text
-sync-dashboard/
-```
-
-使用说明见：
-
-```text
-sync-dashboard/README.md
-```
-
-启动可视化工具：
-
-```powershell
-cd D:\Study\Code\LeetCode\src\sync-dashboard
-mvn spring-boot:run
-```
-
-日常使用推荐流程：
-
-```text
-同步范围：最近提交
-最近数量：20
-本批最多同步：30
-执行模式：写入、提交并推送
-```
 
 ## 说明
 
