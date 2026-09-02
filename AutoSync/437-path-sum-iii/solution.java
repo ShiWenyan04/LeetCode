@@ -1,0 +1,40 @@
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    int ans = 0;
+    public int pathSum(TreeNode root, int targetSum) {
+         // key：从根到 node 的节点值之和
+        // value：节点值之和的出现次数
+        // 注意在递归过程中，哈希表只保存根到 node 的路径的前缀的节点值之和
+        Map<Long ,Integer> map = new HashMap<>();
+        map.put(0L,1);
+        dfs(root,targetSum,map,0);
+        return ans;
+    }
+    public void dfs(TreeNode root, int targetSum,Map<Long, Integer> map, long s){
+         // s 表示从根到 node 的父节点的节点值之和（node 的节点值尚未计入）
+        if(root == null){
+            return ;
+        }
+        s+=root.val;
+        ans+=map.getOrDefault(s-targetSum,0);// 把 node 当作路径的终点，统计有多少个起点
+        map.put(s,map.getOrDefault(s,0)+1);
+        dfs(root.left,targetSum,map,s);
+        dfs(root.right,targetSum,map,s);
+        map.put(s,map.getOrDefault(s,0)-1);
+
+    }
+}
